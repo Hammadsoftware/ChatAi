@@ -2,8 +2,11 @@
 
 import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
-import { FaCloudUploadAlt } from 'react-icons/fa';
+import axios, { AxiosProgressEvent, AxiosError } from 'axios';
+
+interface AxiosErrorResponse {
+  message?: string;
+}
 
 export default function UploadPage() {
   const router = useRouter();
@@ -27,19 +30,24 @@ export default function UploadPage() {
     try {
       await axios.post('http://13.60.75.17/upload/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (e) => {
-          const percent = Math.round((e.loaded * 100) / e.total);
-          setProgress(percent);
+        onUploadProgress: (e: AxiosProgressEvent) => {
+          const loaded = e.loaded ?? 0;
+          const total = e.total ?? 0;
+          if (total > 0) {
+            const percent = Math.round((loaded * 100) / total);
+            setProgress(percent);
+          }
         },
       });
 
       setStatusText('Upload complete!');
       setTimeout(() => {
         router.push('/chatui'); // Redirect after upload
-      }, 500); // slight delay for user feedback
-    } catch (err: any) {
-      console.error(err);
-      setStatusText(err.response?.data?.message || 'Upload failed.');
+      }, 500);
+    } catch (err) {
+      const error = err as AxiosError<AxiosErrorResponse>;
+      console.error(error);
+      setStatusText(error.response?.data?.message || 'Upload failed.');
     } finally {
       setUploading(false);
     }
@@ -68,7 +76,7 @@ export default function UploadPage() {
         onDrop={handleDrop}
         onDragOver={handleDragOver}
       >
-        <FaCloudUploadAlt className="text-gray-400 text-6xl mb-4" />
+        <p className="text-gray-400 text-6xl mb-4">📁</p>
         <p className="text-center mb-4">Click to upload or drag & drop a file</p>
 
         <input
