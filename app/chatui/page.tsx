@@ -1,14 +1,15 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
-import { FaPaperPlane, FaRobot, FaUserCircle } from "react-icons/fa";
+import { FaPaperPlane, FaRobot, FaUserCircle, FaFilePdf } from "react-icons/fa";
 import { ImSpinner2 } from "react-icons/im";
-
 
 export default function ChatUI({ userName = "You" }: { userName?: string }) {
   const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPDF, setSelectedPDF] = useState<File | null>(null);
+  const [pdfUploaded, setPdfUploaded] = useState(false);
 
   // 👇 function to type out AI response word by word
   const typeBotMessage = (text: string) => {
@@ -22,10 +23,8 @@ export default function ChatUI({ userName = "You" }: { userName?: string }) {
         setMessages((prev) => {
           const lastMsg = prev[prev.length - 1];
           if (lastMsg?.sender === "bot") {
-            // update last bot message
             return [...prev.slice(0, -1), { sender: "bot", text: current }];
           } else {
-            // add first bot message
             return [...prev, { sender: "bot", text: current }];
           }
         });
@@ -34,30 +33,55 @@ export default function ChatUI({ userName = "You" }: { userName?: string }) {
         clearInterval(interval);
         setIsLoading(false);
       }
-    }, 60); // typing speed (ms per word)
+    }, 60);
+  };
+
+  // Upload PDF before chat
+  const handlePdfUpload = async () => {
+    if (!selectedPDF) return;
+    setIsLoading(true);
+
+    const formData = new FormData();
+    formData.append("file", selectedPDF);
+
+    try {
+      const res = await axios.post("http://13.60.75.17/upload/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setPdfUploaded(true);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "PDF uploaded successfully! You can now ask questions about it." },
+      ]);
+    } catch (err) {
+      console.error(err);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "⚠️ Failed to upload PDF" },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    // Add user message
     setMessages((prev) => [...prev, { sender: "user", text: input }]);
     const userInput = input;
     setInput("");
     setIsLoading(true);
 
     try {
-      // Call FastAPI GET endpoint
-      const res = await axios.get("http://13.60.75.17//query/", {
+      const res = await axios.get("http://13.60.75.17/query/", {
         params: { query: userInput },
       });
 
       const botAnswer = res.data.answer || "No answer found";
-
-      // Start word-by-word typing
       typeBotMessage(botAnswer);
     } catch (err) {
-      console.error("Error:", err);
+      console.error(err);
       setIsLoading(false);
       setMessages((prev) => [
         ...prev,
@@ -66,6 +90,32 @@ export default function ChatUI({ userName = "You" }: { userName?: string }) {
     }
   };
 
+  if (!pdfUploaded) {
+    // PDF selection/upload screen
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="flex flex-col items-center p-6 bg-gray-900 text-white rounded-2xl shadow-xl space-y-4">
+          <FaFilePdf className="text-red-500 text-6xl" />
+          <p className="text-lg font-semibold">Select a PDF to ask questions about</p>
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={(e) => setSelectedPDF(e.target.files?.[0] ?? null)}
+            className="text-black"
+          />
+          <button
+            onClick={handlePdfUpload}
+            disabled={!selectedPDF || isLoading}
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {isLoading ? "Uploading..." : "Upload PDF"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Chat UI after PDF upload
   return (
     <div className="flex items-center justify-center min-h-screen bg-black">
       <div className="w-[1000px] h-[700px] flex flex-col bg-gray-900 text-white rounded-2xl shadow-xl overflow-hidden">
@@ -78,14 +128,11 @@ export default function ChatUI({ userName = "You" }: { userName?: string }) {
                 msg.sender === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              {/* Avatar */}
               {msg.sender === "bot" ? (
                 <FaRobot className="text-blue-500 mt-1" size={28} />
               ) : (
                 <FaUserCircle className="text-green-500 mt-1" size={28} />
               )}
-
-              {/* Message bubble */}
               <div
                 className={`px-4 py-3 rounded-2xl max-w-[70%] text-gray-900 ${
                   msg.sender === "user"
