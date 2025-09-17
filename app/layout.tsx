@@ -1,51 +1,93 @@
-import { type Metadata } from 'next';
-import { ClerkProvider } from '@clerk/nextjs';
-import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.css';
+// app/layout.tsx
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
 
 const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: 'ConverseAI',
-  description: 'ConverseAI – Your intelligent AI chat and file upload platform.',
-  keywords: ['AI Chatbot', 'ConverseAI', 'Next.js', 'Clerk', 'FastAPI', 'File Upload'],
-  authors: [{ name: 'Hammad Tariq' }],
-  creator: 'Hammad Tariq',
-  themeColor: '#000000',
+  title: "ReduceSize - Free Online Image Compression Tool",
+  description:
+    "ReduceSize helps you compress and reduce image file size instantly without losing quality. Optimize JPEG, PNG, WebP, HEIC, GIF images for web, social media, and storage.",
+  keywords: [
+    // Core
+    "image compression",
+    "reduce image size",
+    "image optimizer",
+    "image resizer",
+    "online image compressor",
+    "compress images without losing quality",
+
+    // Formats
+    "jpeg compressor",
+    "jpg compressor",
+    "png compressor",
+    "webp compressor",
+    "gif compressor",
+    "heic compressor",
+    "svg compressor",
+
+    // Use cases
+    "compress images for web",
+    "compress images for social media",
+    "compress images for whatsapp",
+    "compress images for email",
+    "compress images for storage",
+    "compress images for website speed",
+
+    // Features
+    "bulk image compressor",
+    "free online image compressor",
+    "fast image compression tool",
+    "reduce photo size kb mb",
+    "shrink image file size",
+    "optimize images for seo",
+    "compress images to upload faster",
+    "online photo compressor tool",
+
+    // Brand
+    "ReduceSize app",
+    "ReduceSize online tool",
+  ],
   openGraph: {
-    title: 'ConverseAI',
-    description: 'ConverseAI – Your intelligent AI chat and file upload platform.',
-    siteName: 'ConverseAI',
-    locale: 'en_US',
-    type: 'website',
+    title: "ReduceSize - Compress Images Instantly",
+    description:
+      "ReduceSize helps you compress and reduce image file size instantly without losing quality. Optimize JPEG, PNG, WebP, HEIC, GIF images for web, social media, and storage.",
+    siteName: "ReduceSize",
+    locale: "en_US",
+    type: "website",
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'ConverseAI',
-    description: 'ConverseAI – Your intelligent AI chat and file upload platform.',
+    card: "summary_large_image",
+    title: "ReduceSize - Free Online Image Compression Tool",
+    description:
+      "ReduceSize helps you compress and reduce image file size instantly without losing quality. Optimize JPEG, PNG, WebP, HEIC, GIF images for web, social media, and storage.",
+  },
+  icons: {
+    icon: "/favicon.jpeg",
   },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
-      <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          {children}
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+      </body>
+    </html>
   );
 }
